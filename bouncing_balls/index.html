@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" content="text/html" http-equiv="Content-Type">
+		<title>Bouncing Balls</title>
+		<script type="text/javascript">
+			
+			var canvas, canvasContext;
+			var ballX=75;
+			var ballY=100;
+			var ballSpeedX = 5;
+			var ballSpeedY = 7;
+			var ballR = 10;
+			window.onload = function (){
+				canvas = document.getElementById('gameCanvas');
+				// canvasContext to access/change canvas context
+				canvasContext = canvas.getContext('2d');
+				var framePerSecond = 30;
+				setInterval(updateAll,1000/framePerSecond);
+				//console.log(canvasContext)
+				/****** move to updateAll function
+				canvasContext.fillStyle = 'black';
+				canvasContext.fillRect(0,0, canvas.width,canvas.height);
+
+				//draw write cycle
+				
+
+				canvasContext.fillStyle='white';
+				canvasContext.beginPath();
+				canvasContext.arc(200,100,10,0,Math.PI*2,true);
+				canvasContext.fill();
+
+
+				*****/
+			}
+
+			function updateAll (){
+				ballX +=ballSpeedX;
+				ballY +=ballSpeedY;
+				// check if out of boundary
+				//make the ball bounce back
+				if(ballX > canvas.width-ballR){
+					ballSpeedX =-ballSpeedX;
+				}else if (ballX < 0+ballR){
+					ballSpeedX =-ballSpeedX;
+				}
+
+				if (ballY > canvas.height-ballR) {
+					ballSpeedY = -ballSpeedY;
+				};
+				if(ballY < 0+ballR) {
+					ballSpeedY = -ballSpeedY;
+				}
+
+				//draw background
+				// 假如不每次跟新 backgound的话，那个球原来的位置就不会消除掉，看起来就是一条在变长的条，而不是一个球了
+				canvasContext.fillStyle='black';
+				canvasContext.fillRect(0,0, canvas.width, canvas.height);
+
+				//draw write cycle
+				// beginPath(). fill() 有点像公式，作为固定开头结尾
+				canvasContext.fillStyle='white';
+				canvasContext.beginPath();
+				canvasContext.arc(ballX,ballY,ballR,0,Math.PI*2,true);
+				canvasContext.fill();
+			}
+		</script>
+	</head>
+	<body>
+		<canvas id="gameCanvas" width="800" height="600" >
+			
+		</canvas>
+	
+	</body>
+</html>
