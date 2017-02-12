@@ -1,4 +1,5 @@
 make simple web_games
+<<<<<<< HEAD
 make simple web_games
 make simple web_games
 make simple web_games
@@ -8,3 +9,6 @@ make simple web_games
 小球弹来弹去的时候要根据碰到paddle的角度来控制反弹方向和速度
 小球弹来弹去的时候要根据碰到paddle的角度来控制反弹方向和速度
 小球弹来弹去的时候要根据碰到paddle的角度来控制反弹方向和速度
+=======
+
+>>>>>>> 7401939c2b8340d83e9efbe3bcfe40c597e8b9a3
