@@ -11,6 +11,27 @@
 			var ballSpeedX = 5;
 			var ballSpeedY = 7;
 			var ballR = 10;
+
+
+			/**********    EVERYTHING ABOUT PADDLE           *********/
+			const PADDLE_WIDTH = 100;
+			const PADDLE_THICKNESS =20;
+			const PADDLE_DIST_FROM_EDGE = 60;
+			var paddleX = 400;
+			
+			function updateMousePositions (evt){
+				// console.log('mousemoving: ' + evt.clientX);
+				//getBoundingClientRect return left, top, right, bottom, x, y, width, height
+				var rect=canvas.getBoundingClientRect();
+				// root will be the whole html
+				var root=document.documentElement;
+				// console.log('rect: ',rect, 'root: ',root.scrollLeft)
+				var mouseX = evt.clientX-rect.left-root.scrollLeft;
+				// make the mouse point to middle of the paddle
+				paddleX = mouseX-PADDLE_WIDTH/2;
+
+			}
+
 			window.onload = function (){
 				canvas = document.getElementById('gameCanvas');
 				// canvasContext to access/change canvas context
@@ -23,18 +44,43 @@
 				canvasContext.fillRect(0,0, canvas.width,canvas.height);
 
 				//draw write cycle
-				
-
 				canvasContext.fillStyle='white';
 				canvasContext.beginPath();
 				canvasContext.arc(200,100,10,0,Math.PI*2,true);
 				canvasContext.fill();
-
-
 				*****/
+				canvas.addEventListener('mousemove',updateMousePositions);
+
 			}
 
 			function updateAll (){
+				moveBall();
+				drawBall();
+				
+			}
+
+			function drawBall (){
+				//draw background
+				// 假如不每次跟新 backgound的话，那个球原来的位置就不会消除掉，看起来就是一条在变长的条，而不是一个球了
+				/****** use a function to replace
+				canvasContext.fillStyle='black';
+				canvasContext.fillRect(0,0, canvas.width, canvas.height);
+				*******/
+				colorRect (0,0, canvas.width, canvas.height, 'black');
+
+				//draw write cycle
+				// beginPath(). fill() 有点像公式，作为固定开头结尾
+				/****** use a function to replace
+				canvasContext.fillStyle='white';
+				canvasContext.beginPath();
+				canvasContext.arc(ballX,ballY,ballR,0,Math.PI*2,true);
+				canvasContext.fill();
+				*******/
+				colorCircle(ballX,ballY,ballR,'white');
+				colorRect(paddleX,canvas.height-PADDLE_DIST_FROM_EDGE, PADDLE_WIDTH,PADDLE_THICKNESS,'white');
+			}
+
+			function moveBall() {
 				ballX +=ballSpeedX;
 				ballY +=ballSpeedY;
 				// check if out of boundary
@@ -44,26 +90,68 @@
 				}else if (ballX < 0+ballR){
 					ballSpeedX =-ballSpeedX;
 				}
-
-				if (ballY > canvas.height-ballR) {
-					ballSpeedY = -ballSpeedY;
-				};
+				// 球不出top的边
 				if(ballY < 0+ballR) {
 					ballSpeedY = -ballSpeedY;
+				};
+
+				//球不出bottom的边
+				if(ballY+ballR > canvas.height){
+					ballReset();
+				}
+				var paddleTopEdgeY = canvas.height-PADDLE_DIST_FROM_EDGE;
+				var paddleBottomEdgeY = paddleTopEdgeY + PADDLE_THICKNESS;
+				var paddleLeftEdgeX = paddleX;
+				var paddleRightEdgeX = paddleLeftEdgeX + PADDLE_WIDTH;
+
+				// if (ballY+ballR > paddleTopEdgeY) {
+				// 	// check if the ball hit on the paddle
+				// 	if(ballX+ballR >= paddleRightEdgeX && ballX+ballR <= paddleLeftEdgeX){
+				// 		// console.log('hit the paddle');
+				// 		ballSpeedY = -ballSpeedY;
+				// 	}else {
+				// 		// console.log('not on the paddle  game over');
+				// 		// reset the ball
+				// 		ballReset();
+
+				// 	}
+				// };
+
+				if (ballY + ballR > paddleTopEdgeY && 
+					ballY + ballR < paddleBottomEdgeY && 
+					ballX > paddleLeftEdgeX &&
+					ballX < paddleRightEdgeX) {
+					ballSpeedY = -ballSpeedY;
+
+					//make the bounce back has different angles based on the angle when ball hits on the paddle
+					// will be negative/postive, so reflect to the direction of how the ball bouncing
+					var ballDistFromPaddleCenterX = ballX-(paddleX+PADDLE_WIDTH/2);
+					ballSpeedX=ballDistFromPaddleCenterX*0.35;
 				}
 
-				//draw background
-				// 假如不每次跟新 backgound的话，那个球原来的位置就不会消除掉，看起来就是一条在变长的条，而不是一个球了
-				canvasContext.fillStyle='black';
-				canvasContext.fillRect(0,0, canvas.width, canvas.height);
 
-				//draw write cycle
-				// beginPath(). fill() 有点像公式，作为固定开头结尾
-				canvasContext.fillStyle='white';
+
+			};
+
+			function ballReset (){
+				ballX = canvas.width/2;
+				ballY = canvas.height/2;
+
+			}
+
+			function colorRect (topLeftX, topLeftY, boxWidth,boxHeight, fillColor){
+				canvasContext.fillStyle=fillColor;
+				canvasContext.fillRect(topLeftX, topLeftY, boxWidth,boxHeight);
+			}
+
+			function colorCircle(centerX, centerY, radius, fillColor) {
+				canvasContext.fillStyle = fillColor;
 				canvasContext.beginPath();
-				canvasContext.arc(ballX,ballY,ballR,0,Math.PI*2,true);
+				canvasContext.arc(centerX,centerY,radius,0, Math.PI*2, true);
 				canvasContext.fill();
 			}
+
+			
 		</script>
 	</head>
 	<body>
