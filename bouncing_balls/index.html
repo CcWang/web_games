@@ -18,6 +18,12 @@
 			const PADDLE_THICKNESS =20;
 			const PADDLE_DIST_FROM_EDGE = 60;
 			var paddleX = 400;
+
+			/**********    EVERY Var ABOUT bricks           *********/
+			const BRICK_W = 100;
+			const BRICK_H = 50;
+			const BRICK_COUNT = 4;
+
 			
 			function updateMousePositions (evt){
 				// console.log('mousemoving: ' + evt.clientX);
@@ -78,10 +84,25 @@
 				canvasContext.fill();
 				*******/
 				colorCircle(ballX,ballY,ballR,'white');
+
+				// draw paddle
 				colorRect(paddleX,canvas.height-PADDLE_DIST_FROM_EDGE, PADDLE_WIDTH,PADDLE_THICKNESS,'white');
+
+				//draw bricks
+
+				drawBricks();
 
 				//print out the mouse postions, easier to edbug
 				colorText(mouseX+','+mouseY,mouseX,mouseY,'red');
+			}
+
+			function drawBricks(){
+				var count = 0;
+				while (count < BRICK_COUNT){
+					
+					colorRect(count*BRICK_W+count*2,0, BRICK_W,BRICK_H,'blue');
+					count++;
+				}
 			}
 
 			function moveBall() {
