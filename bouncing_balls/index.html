@@ -36,22 +36,22 @@
 			}
 
 			/**********    EVERYTHING ABOUT bricks           *********/
-			const BRICK_W = 100;
-			const BRICK_H = 50;
-			const BRICK_COUNT = 800/BRICK_W;
+			const BRICK_W = 80;
+			const BRICK_H = 20;
+			const BRICK_COLS = 800/BRICK_W;
+			const BRICK_GAP = 2;
+			const BRICK_ROW = 14;
 			// in JS you can preset the array length too
-			var brickGrid = new Array(BRICK_COUNT)
+			var brickGrid = new Array(BRICK_COLS * BRICK_ROW)
 
 			function brickReset(){
-				for(var i=0;i<BRICK_COUNT;i++){
-					// to random draw a brick wall
-					if(Math.random()<0.5){
-
+				for(var i=0;i<BRICK_COLS * BRICK_ROW;i++){
+					
 						brickGrid[i] = true;
-					}else{
-						brickGrid[i] =false;
-					}// end of math random if check
+					
+					
 				}// end of each loop
+
 			}//end of brick reset func
 
 			window.onload = function (){
@@ -74,16 +74,17 @@
 				canvas.addEventListener('mousemove',updateMousePositions);
 
 				brickReset();
+				
 
 			}
 
 			function updateAll (){
 				moveBall();
-				drawBall();
+				drawAll();
 				
 			}
 
-			function drawBall (){
+			function drawAll (){
 				//draw background
 				// 假如不每次跟新 backgound的话，那个球原来的位置就不会消除掉，看起来就是一条在变长的条，而不是一个球了
 				/****** use a function to replace
@@ -110,16 +111,41 @@
 				drawBricks();
 
 				//print out the mouse postions, easier to edbug
-				colorText(mouseX+','+mouseY,mouseX,mouseY,'red');
+				// 显示的是鼠标在第几个brick的位置
+				var mouseBrickCol = Math.floor(mouseX / BRICK_W);
+				var mouseBrickRow = Math.floor(mouseY / BRICK_H);
+				var brickIndexUnderMouse = rowColToArrayIndex(mouseBrickCol, mouseBrickRow);
+				colorText(mouseBrickCol+','+mouseBrickRow+": "+ brickIndexUnderMouse,
+							mouseX,mouseY,'red');
+
+				//use mouse to remove the bricks
+				/*if(brickIndexUnderMouse >=0 &&
+					brickIndexUnderMouse <= BRICK_COLS*BRICK_ROW){
+					brickGrid[brickIndexUnderMouse]=false;
+				}
+				*/
 			}
 
+			// print out index number in bricks Array, easy for later coding
+
+			function rowColToArrayIndex(col,row){
+				return BRICK_COLS*row+col;
+			}
 			function drawBricks(){
-				for (var i=0; i<BRICK_COUNT;i++){
-					if(brickGrid[i]){
-						//BRICK_W-2 create gap between bricks
-						colorRect(i*BRICK_W,0, BRICK_W-2,BRICK_H,'blue');
-					} // end of brickGrid[i] is true/false
-				}// end of for each brick
+				//row loop
+				for (var eachRow = 0; eachRow < BRICK_ROW; eachRow++) {
+				
+					for (var eachCol=0; eachCol<BRICK_COLS;eachCol++){
+
+						var arrayIndex = rowColToArrayIndex(eachCol,eachRow);
+
+						if(brickGrid[arrayIndex]){
+							//BRICK_W-2 create gap between bricks
+							colorRect(eachCol*BRICK_W,eachRow*BRICK_H, BRICK_W-BRICK_GAP,BRICK_H-BRICK_GAP,'blue');
+						} // end of brickGrid[i] is true/false
+					}// end of for each col brick
+					
+				}// end of each row
 			}//end of drawBricks
 
 			function moveBall() {
@@ -158,6 +184,23 @@
 
 				// 	}
 				// };
+
+				var ballBrickCol = Math.floor(ballX/BRICK_W);
+				var ballBrickRow = Math.floor(ballY/BRICK_H);
+				var brickIndexUnderBall = rowColToArrayIndex(ballBrickCol,ballBrickRow);
+				//防止球到最边上时，因为负的速度导致对面的一块被削掉了
+				if(brickIndexUnderBall >=0 &&
+					ballBrickCol < BRICK_COLS &&
+					ballBrickRow < BRICK_ROW &&
+					ballBrickRow >=0
+					){
+					// make the ball bouncing when hit the brick
+					if(brickGrid[brickIndexUnderBall]){
+
+						brickGrid[brickIndexUnderBall]=false;
+						ballSpeedY=-ballSpeedY;
+					}
+				}
 
 				if (ballY + ballR > paddleTopEdgeY && 
 					ballY + ballR < paddleBottomEdgeY && 
