@@ -19,12 +19,8 @@
 			const PADDLE_DIST_FROM_EDGE = 60;
 			var paddleX = 400;
 
-			/**********    EVERY Var ABOUT bricks           *********/
-			const BRICK_W = 100;
-			const BRICK_H = 50;
-			const BRICK_COUNT = 4;
 
-			
+
 			function updateMousePositions (evt){
 				// console.log('mousemoving: ' + evt.clientX);
 				//getBoundingClientRect return left, top, right, bottom, x, y, width, height
@@ -38,6 +34,25 @@
 				paddleX = mouseX-PADDLE_WIDTH/2;
 
 			}
+
+			/**********    EVERYTHING ABOUT bricks           *********/
+			const BRICK_W = 100;
+			const BRICK_H = 50;
+			const BRICK_COUNT = 800/BRICK_W;
+			// in JS you can preset the array length too
+			var brickGrid = new Array(BRICK_COUNT)
+
+			function brickReset(){
+				for(var i=0;i<BRICK_COUNT;i++){
+					// to random draw a brick wall
+					if(Math.random()<0.5){
+
+						brickGrid[i] = true;
+					}else{
+						brickGrid[i] =false;
+					}// end of math random if check
+				}// end of each loop
+			}//end of brick reset func
 
 			window.onload = function (){
 				canvas = document.getElementById('gameCanvas');
@@ -57,6 +72,8 @@
 				canvasContext.fill();
 				*****/
 				canvas.addEventListener('mousemove',updateMousePositions);
+
+				brickReset();
 
 			}
 
@@ -97,13 +114,13 @@
 			}
 
 			function drawBricks(){
-				var count = 0;
-				while (count < BRICK_COUNT){
-					
-					colorRect(count*BRICK_W+count*2,0, BRICK_W,BRICK_H,'blue');
-					count++;
-				}
-			}
+				for (var i=0; i<BRICK_COUNT;i++){
+					if(brickGrid[i]){
+						//BRICK_W-2 create gap between bricks
+						colorRect(i*BRICK_W,0, BRICK_W-2,BRICK_H,'blue');
+					} // end of brickGrid[i] is true/false
+				}// end of for each brick
+			}//end of drawBricks
 
 			function moveBall() {
 				ballX +=ballSpeedX;
