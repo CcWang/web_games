@@ -33,6 +33,13 @@
 				// make the mouse point to middle of the paddle
 				paddleX = mouseX-PADDLE_WIDTH/2;
 
+				// chect / hack to test ball in any position
+				/*ballX = mouseX;
+				ballY = mouseY;
+				ballSpeedX = 4;
+				ballSpeedY = -4;
+				*/
+
 			}
 
 			/**********    EVERYTHING ABOUT bricks           *********/
@@ -44,11 +51,19 @@
 			// in JS you can preset the array length too
 			var brickGrid = new Array(BRICK_COLS * BRICK_ROW)
 
+			var bricksLeft=0;
+
 			function brickReset(){
-				for(var i=0;i<BRICK_COLS * BRICK_ROW;i++){
+				bricksLeft = 0;
+				// make first rows false
+				var i;
+				for(i=0;i<3*BRICK_COLS;i++){
+					brickGrid[i] = false;
+				}
+				for(;i<BRICK_COLS * BRICK_ROW;i++){
 					
 						brickGrid[i] = true;
-					
+						bricksLeft ++;
 					
 				}// end of each loop
 
@@ -75,11 +90,11 @@
 
 				brickReset();
 				
-
+				ballReset();
 			}
 
 			function updateAll (){
-				moveBall();
+				moveAll();
 				drawAll();
 				
 			}
@@ -147,44 +162,44 @@
 					
 				}// end of each row
 			}//end of drawBricks
+			
+			//clean moveAll
 
-			function moveBall() {
+			function ballMove(){
 				ballX +=ballSpeedX;
 				ballY +=ballSpeedY;
 				// check if out of boundary
 				//make the ball bounce back
-				if(ballX > canvas.width-ballR){
+				//假如球在界外了，就不能再忘界外反弹。用速度来测试是否会弹出界外
+				if(ballX > canvas.width-ballR && ballSpeedX >0.0){ //right
 					ballSpeedX =-ballSpeedX;
-				}else if (ballX < 0+ballR){
+				}else if (ballX < 0+ballR && ballSpeedX<0.0){ //left
 					ballSpeedX =-ballSpeedX;
 				}
 				// 球不出top的边
-				if(ballY < 0+ballR) {
+				if(ballY < 0+ballR && ballSpeedY <0.0) {
 					ballSpeedY = -ballSpeedY;
 				};
 
 				//球不出bottom的边
-				if(ballY+ballR > canvas.height){
+				if(ballY+ballR > canvas.height ){
 					ballReset();
 				}
-				var paddleTopEdgeY = canvas.height-PADDLE_DIST_FROM_EDGE;
-				var paddleBottomEdgeY = paddleTopEdgeY + PADDLE_THICKNESS;
-				var paddleLeftEdgeX = paddleX;
-				var paddleRightEdgeX = paddleLeftEdgeX + PADDLE_WIDTH;
+			}
 
-				// if (ballY+ballR > paddleTopEdgeY) {
-				// 	// check if the ball hit on the paddle
-				// 	if(ballX+ballR >= paddleRightEdgeX && ballX+ballR <= paddleLeftEdgeX){
-				// 		// console.log('hit the paddle');
-				// 		ballSpeedY = -ballSpeedY;
-				// 	}else {
-				// 		// console.log('not on the paddle  game over');
-				// 		// reset the ball
-				// 		ballReset();
+			function isBrickAtColRow(col,row){
+				// check if that position is inside of range
+				if(col>=0 && col < BRICK_COLS &&
+					row >= 0 && row < BRICK_ROW){
+					var brickIndexUnderCoord = rowColToArrayIndex(col,row);
+					return brickGrid[brickIndexUnderCoord];
+					
+				}else{
+					return false
+				}
+			}
 
-				// 	}
-				// };
-
+			function ballBrickHandling(){
 				var ballBrickCol = Math.floor(ballX/BRICK_W);
 				var ballBrickRow = Math.floor(ballY/BRICK_H);
 				var brickIndexUnderBall = rowColToArrayIndex(ballBrickCol,ballBrickRow);
@@ -195,27 +210,81 @@
 					ballBrickRow >=0
 					){
 					// make the ball bouncing when hit the brick
-					if(brickGrid[brickIndexUnderBall]){
+					if(isBrickAtColRow(ballBrickCol, ballBrickRow)){
 
 						brickGrid[brickIndexUnderBall]=false;
-						ballSpeedY=-ballSpeedY;
-					}
-				}
+						//ballSpeedY=-ballSpeedY;
+						bricksLeft--;
+						//console.log(bricksLeft);
+						// find previous position
 
-				if (ballY + ballR > paddleTopEdgeY && 
-					ballY + ballR < paddleBottomEdgeY && 
-					ballX > paddleLeftEdgeX &&
-					ballX < paddleRightEdgeX) {
+						var prevBallX=ballX-ballSpeedX;
+						var prevBallY = ballY - ballSpeedY;
+						var prevBrickCol = Math.floor(prevBallX / BRICK_W);
+						var prevBrickRow = Math.floor(prevBallY / BRICK_H);
+
+						var bothTestsFailed = true;
+						if (prevBrickCol != ballBrickCol) {
+
+							if(isBrickAtColRow(prevBrickCol,ballBrickRow)== false){
+								ballSpeedX =-ballSpeedX;
+								bothTestsFailed =false;
+							}// end check adj brick
+						}// end check same col
+
+						if (prevBrickRow !=ballBrickRow){
+							
+							if(isBrickAtColRow(ballBrickCol,prevBrickRow) ==false){
+
+								ballSpeedY =-ballSpeedY;
+								bothTestsFailed = false;
+							}//end check adj brick
+						}//end check same row 
+
+						if(bothTestsFailed){ //armpit case, prevent ball from going right through
+
+							ballSpeedY *=-1;
+							ballSpeedX *=-1;
+						}//end check armpit case
+						 
+						
+					}// end of check if brick is there
+					
+				}// end of valid col and row
+			}//end of ballBrickHanding func
+
+			function ballPaddleHandling(){
+				var paddleTopEdgeY = canvas.height-PADDLE_DIST_FROM_EDGE;
+				var paddleBottomEdgeY = paddleTopEdgeY + PADDLE_THICKNESS;
+				var paddleLeftEdgeX = paddleX;
+				var paddleRightEdgeX = paddleLeftEdgeX + PADDLE_WIDTH;
+
+				if (ballY + ballR > paddleTopEdgeY &&  //below the top of hte paddle
+					ballY + ballR < paddleBottomEdgeY && //below tha top of paddle
+					ballX > paddleLeftEdgeX &&	//right of the left side of paddle
+					ballX < paddleRightEdgeX) { // left of the right side of paddle
 					ballSpeedY = -ballSpeedY;
 
 					//make the bounce back has different angles based on the angle when ball hits on the paddle
 					// will be negative/postive, so reflect to the direction of how the ball bouncing
 					var ballDistFromPaddleCenterX = ballX-(paddleX+PADDLE_WIDTH/2);
 					ballSpeedX=ballDistFromPaddleCenterX*0.35;
-				}
 
+					if(bricksLeft == 0){
+						brickReset();
+					}//end of brick reset
 
+				} // end of checking edge
 
+			} //end of ballPaddleHanding func
+
+			function moveAll() {
+				ballMove();
+
+				ballBrickHandling();
+
+				ballPaddleHandling();
+						
 			};
 
 			function ballReset (){
